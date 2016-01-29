@@ -21,7 +21,8 @@ describe("app", function() {
   });
 
   describe("#listen", function() {
-    var port = 7001;
+    // making test port configurable
+    var port = process.env["TEST_PORT"] || 7001;
     var server = app.listen(port);
 
     it("should return an http.Server", function(){
