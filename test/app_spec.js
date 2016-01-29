@@ -14,5 +14,9 @@ describe("app", function() {
         .expect(404)
         .end(done);
     });
+
+    it('should return a function', function() {
+      expect(app).to.be.a('function');
+    })
   });
 });
