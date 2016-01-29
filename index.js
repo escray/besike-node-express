@@ -15,6 +15,9 @@ function myexpress() {
     next = function() {
       if (app.stack[i]) {
         return app.stack[i++](req, res, next);
+      } else {
+        res.statusCode = 404;
+        res.end();
       }
     }
 

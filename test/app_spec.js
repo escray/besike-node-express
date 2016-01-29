@@ -46,13 +46,14 @@ describe("Building the middlewares stack", function() {
       app = express();
     });
 
-    var m1 = function() {};
-    var m2 = function() {};
+    
 
   describe("Implement app.use", function() {
     it("should be able to add middlewares to stack", function(){
       expect(app.use).to.be.a('function');
       expect(app.stack.length).to.equal(0);
+      var m1 = function() {};
+      var m2 = function() {};
       app.use(m1);
       app.use(m2);
       expect(app.stack.length).to.equal(2);
@@ -69,17 +70,36 @@ describe("Building the middlewares stack", function() {
       request(app).get('/').expect(msg).end(done);
     });
 
-    it("should be able to call 'next' to go to the next middleware", function() {
+    it("should be able to call 'next' to go to the next middleware", function(done) {
+      var msg = "hello from m2";
+      var m1 = function(req, res, next) {
+        next();
+      }
+      var m2 = function(req, res, next) {
+        res.end(msg);
+      }
+      app.use(m1);
+      app.use(m2);
 
+      request(app).get('/').expect(msg).end(done);
     });
 
-    it("should 404 at the end of middleware chain", function() {
+    it("should 404 at the end of middleware chain", function(done) {
+      var m1 = function(req, res, next) {
+        next();
+      }
+      var m2 = function(req, res, next) {
+        next();
+      }
+      app.use(m1);
+      app.use(m2);
 
+      request(app).get('/').expect(404).end(done);
     });
 
-    it("should 404 if no middleware is added", function() {
-      app.stack = [];
-
+    it("should 404 if no middleware is added", function(done) {
+      //app.stack = [];
+      request(app).get('/').expect(404).end(done);
     });
   });
 
