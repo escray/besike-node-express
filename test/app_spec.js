@@ -42,7 +42,7 @@ describe("app", function() {
 describe("Building the middlewares stack", function() {
     var app;
 
-    before(function(){
+    beforeEach(function(){
       app = express();
     });
 
@@ -56,6 +56,32 @@ describe("Building the middlewares stack", function() {
       app.use(m1);
       app.use(m2);
       expect(app.stack.length).to.equal(2);
+    });          
+  });
+
+  describe("Implement calling the middlewares", function(){
+    it("should be able to call a single middleware", function(done) {
+      var msg = "hello from m1";
+      var m1 = function(req, res, next) {
+        res.end(msg);
+      };
+      app.use(m1);
+      request(app).get('/').expect(msg).end(done);
+    });
+
+    it("should be able to call 'next' to go to the next middleware", function() {
+
+    });
+
+    it("should 404 at the end of middleware chain", function() {
+
+    });
+
+    it("should 404 if no middleware is added", function() {
+      app.stack = [];
+
     });
   });
+
+  
 });

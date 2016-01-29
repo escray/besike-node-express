@@ -11,6 +11,14 @@ function myexpress() {
         res.statusCode = 404;
         res.end();  
     };
+
+    next = function() {
+      if (app.stack[i]) {
+        return app.stack[i++](req, res, next);
+      }
+    }
+
+    next();
   }
 
   app.listen = function() {
@@ -19,10 +27,16 @@ function myexpress() {
   }
 
   app.stack = [];
+  var i = 0;
 
   app.use = function(middleware) {
     app.stack.push(middleware);
+    return app;    
   }
+
+  
+
+
 
   return app; 
 }
