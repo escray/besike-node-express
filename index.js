@@ -11,13 +11,12 @@ function myexpress() {
     };
   }
 
-  app.listen = function(port, done) {
+  app.listen = function() {
 
-    var server = http.createServer(app).listen(port);
-    if (done) {
-      done();
-    }
-    return server;   
+    var server = http.createServer(app);
+    return server.listen.apply(server, arguments);
+    
+    
   }
 
   return app; 
