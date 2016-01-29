@@ -1,0 +1,30 @@
+{
+  "name": "myexpress",
+  "version": "1.0.0",
+  "description": "Building The Express App lesson of the NodeJS Express Way course on sike.io",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/escray/besike-node-express.git"
+  },
+  "keywords": [
+    "express"
+  ],
+  "author": "escray",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/escray/besike-node-express/issues"
+  },
+  "homepage": "https://github.com/escray/besike-node-express#readme",
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "express": "^4.13.4",
+    "http": "0.0.0",
+    "mocha": "^2.4.5",
+    "supertest": "^1.1.0",
+    "url": "^0.11.0"
+  }
+}
