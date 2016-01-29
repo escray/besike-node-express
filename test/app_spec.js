@@ -17,6 +17,23 @@ describe("app", function() {
 
     it('should return a function', function() {
       expect(app).to.be.a('function');
-    })
+    });
   });
+
+  describe("#listen", function() {
+    var port = 7001;
+    var server = app.listen(port);
+
+    it("should return an http.Server", function(){
+      
+      expect(server).to.be.instanceof(http.Server);
+    });
+
+    it("with port", function(done){      
+      request("http://localhost:" + port)
+        .get("/foo")
+        .expect(404)
+        .end(done);
+    });
+  })
 });
