@@ -36,5 +36,26 @@ describe("app", function() {
         .expect(404)
         .end(done);
     });
-  })
+  });
+});
+
+describe("Building the middlewares stack", function() {
+    var app;
+
+    before(function(){
+      app = express();
+    });
+
+    var m1 = function() {};
+    var m2 = function() {};
+
+  describe("Implement app.use", function() {
+    it("should be able to add middlewares to stack", function(){
+      expect(app.use).to.be.a('function');
+      expect(app.stack.length).to.equal(0);
+      app.use(m1);
+      app.use(m2);
+      expect(app.stack.length).to.equal(2);
+    });
+  });
 });
