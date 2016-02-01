@@ -126,7 +126,6 @@ describe("Building the middlewares stack", function() {
         request(app).get('/').expect(500).end(done);
       });
 
-      debugger;
       it("should ignore error handlers when 'next' is called without an error", function(done) {
         var m1 = function(req, res, next) {
           next();
@@ -161,5 +160,27 @@ describe("Building the middlewares stack", function() {
 
         request(app).get('/').expect("e1").end(done);
       });
-  });  
+  });
+
+  describe("Implement App Embedding As Middleware", function() {
+    var app;
+    var subapp;
+
+    beforeEach(function() {
+      app = express();
+      subApp = express();
+    });
+
+    it("should pass unhandled request to parent", function(done) {
+      function m2(req, res) {
+        res.end("m2");
+      }
+
+      app.use(subApp);
+      app.use(m2);
+      debugger;
+      request(app).get('/').expect("m2").end(done);
+    }); 
+  });
 });
+
