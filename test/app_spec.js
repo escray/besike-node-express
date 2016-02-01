@@ -178,9 +178,24 @@ describe("Building the middlewares stack", function() {
 
       app.use(subApp);
       app.use(m2);
-      debugger;
       request(app).get('/').expect("m2").end(done);
-    }); 
+    });
+
+    it("should pass unhandled error to parent", function(done) {
+      function m1(req, res, next) {
+        next("m1 error");
+      }
+      function e1(err, req, res, next) {
+        res.end(err);
+      }
+
+      subApp.use(m1);
+
+      app.use(subApp);
+      app.use(e1);
+
+      request(app).get('/').expect("m1 error").end(done);
+    }) 
   });
 });
 

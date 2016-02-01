@@ -19,10 +19,7 @@ function myexpress() {
         msg = "500 - Internal Error";
       } else if (code == 404) {
         //console.log(app.next2)
-        if (app.next2) {
-          if(err) 
-            app.next2(err)
-          else
+        if (app.next2) {        
             app.next2();
         }
         msg = "404 - Not Found";
@@ -60,7 +57,7 @@ function myexpress() {
             //  }
         }
         if (i == app.stack.length) {
-              resEnd(500);
+              resEnd(500, err);
               return;
         };
         if (app.stack[i]) {
