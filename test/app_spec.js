@@ -272,10 +272,10 @@ describe("Building the middlewares stack", function () {
 
     beforeEach(function () {
       app = new express();
-      app.use("/foo", function (req, res) {
+      app.use("/foo", function (req, res, next) {
         res.end("/foo");
       })
-      app.use("/", function (req, res, next) {
+      app.use("/", function (req, res) {
         res.end("root");
       })
     });
@@ -290,6 +290,37 @@ describe("Building the middlewares stack", function () {
 
     it("returns foo for Get /foo/bar", function (done) {
       request(app).get("/foo/bar").expect("/foo").end(done);
+    });
+  });
+
+  describe("The error handlers called should match request path:", function() {
+    var app;
+    beforeEach(function() {
+      app = new express();
+
+      app.use("/foo", function(req, res, next) {
+        throw "boom!";
+      });
+
+      app.use("/foo/a", function(err, req, res, next) {
+        res.end("error handled /foo/a");
+      });
+
+      app.use("/foo/b", function(err, req, res, next) {
+        res.end("error handled /foo/b");
+      })
+    });
+
+    it("handles error with /foo/a", function(done) {
+      request(app).get('/foo/a').expect("error handled /foo/a").end(done);
+    });
+
+    it("handles error with /foo/b", function(done) {
+      request(app).get('/foo/b').expect("error handled /foo/b").end(done);
+    });
+
+    it("returns 500 for /foo", function(done) {
+      request(app).get('/foo').expect(500).end(done);
     });
   });
 });

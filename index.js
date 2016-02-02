@@ -24,7 +24,10 @@ function myexpress() {
     function next(err) {
 
       if (err) {
-        while (app.stack[i] && app.stack[i].handle.length != 4) {
+        while (app.stack[i]) {
+          if (app.stack[i].handle.length == 4)
+            if (app.stack[i].match(req.url))
+              return app.stack[i++].handle(err, req, res, next);
           i++;
         }
         if (i == app.stack.length) {
@@ -34,42 +37,39 @@ function myexpress() {
           resEnd(500);
           return;
         }
-        ;
-        if (app.stack[i]) {
-          if (app.stack[i].match(req.url))
-            return app.stack[i++].handle(err, req, res, next);
-        }
+
+        //if (app.stack[i]) {
+        //  if (app.stack[i].match(req.url))
+        //    return app.stack[i++].handle(err, req, res, next);
+        //  else
+        //    i++;
+        //}
 
       }
       // without error
       else {
-        while (app.stack[i] &&  i <= app.stack.length) {
+        while (app.stack[i] && i <= app.stack.length) {
           if (app.stack[i].handle.length == 2) {
             if (app.stack[i].match(req.url))
-              return app.stack[i].handle(req, res);
-          } else if (app.stack[i].handle.length == 3 ) {
-
-
-
-
-
-            break;
+              return app.stack[i++].handle(req, res);
+          } else if (app.stack[i].handle.length == 3) {
+            try {
+              if (app.stack[i].match(req.url))
+                return app.stack[i++].handle(req, res, next);
+              else
+                i++;
+            }
+            catch (err) {
+              next(err);
+            }
+          } else {
+            i++;
           }
-
-          i++;
 
 
         }
         if (app.stack[i]) {
-          try {
-            if (app.stack[i].match(req.url))
-              return app.stack[i++].handle(req, res, next);
-            else
-              i++;
-          }
-          catch (err) {
-            next(err);
-          }
+
         } else {
           if (app.next2) {
             app.next2();
@@ -80,7 +80,6 @@ function myexpress() {
     }
 
     next();
-
   }
 
   app.stack = [];
