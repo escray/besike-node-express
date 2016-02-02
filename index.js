@@ -2,125 +2,120 @@ module.exports = myexpress;
 
 var url = require("url");
 var http = require("http");
+var Layer = require("./lib/layer.js");
 
+//var i;
 function myexpress() {
+  var i;
+  var app = function (req, res) {
+    i = 0;
 
-  
-
-  var app = function(req, res) {
-
-    function resEnd(code, err) {
+    function resEnd(code) {
       res.statusCode = code;
       var msg;
       if (code == 500) {
-        if (app.next2) {
-          app.next2(err);
-        }
         msg = "500 - Internal Error";
       } else if (code == 404) {
-        //console.log(app.next2)
-        if (app.next2) {        
-            app.next2();
-        }
         msg = "404 - Not Found";
       }
       res.end(msg);
     }
 
-
-    if (url.parse(req.url).path === '/foo') {
-        // res.statusCode = 404;
-        // res.end("404 - Not Found");  
-        resEnd(404);
-    };
-
     function next(err) {
 
-
-
-
       if (err) {
-        // res.statusCode = 500;
-        // res.end();
-        // if (i == app.stack.length) {
-        //   resEnd(500);
-        //   return;
-        // };
-        // resEnd(500);
-        while (app.stack[i] && app.stack[i].length != 4) {
-            i++;
-            // if (app.stack[i].length == 2) {
-            //    return app.stack[i++](req, res);
-
-            //  } else {
-            //    i++;
-            //  }
+        while (app.stack[i] && app.stack[i].handle.length != 4) {
+          i++;
         }
         if (i == app.stack.length) {
-              resEnd(500, err);
-              return;
-        };
+          if (app.next2) {
+            app.next2(err);
+          }
+          resEnd(500);
+          return;
+        }
+        ;
         if (app.stack[i]) {
-          return app.stack[i++](err, req, res, next);
+          if (app.stack[i].match(req.url))
+            return app.stack[i++].handle(err, req, res, next);
         }
 
       }
+      // without error
       else {
-        while (app.stack[i] && app.stack[i].length != 3) {
-            if (app.stack[i].length == 2) {
-               return app.stack[i++](req, res);
-             } else {
-               i++;
-             }
-           //i++;
+        while (app.stack[i] &&  i <= app.stack.length) {
+          if (app.stack[i].handle.length == 2) {
+            if (app.stack[i].match(req.url))
+              return app.stack[i].handle(req, res);
+          } else if (app.stack[i].handle.length == 3 ) {
+
+
+
+
+
+            break;
+          }
+
+          i++;
+
+
         }
         if (app.stack[i]) {
           try {
-            return app.stack[i++](req, res, next);          
+            if (app.stack[i].match(req.url))
+              return app.stack[i++].handle(req, res, next);
+            else
+              i++;
           }
           catch (err) {
             next(err);
           }
         } else {
-
+          if (app.next2) {
+            app.next2();
+          }
           resEnd(404);
-        }        
+        }
       }
-
-
-
     }
 
     next();
 
   }
 
-  app.listen = function() {
+  app.stack = [];
+
+
+  app.listen = function () {
     var server = http.createServer(app);
-    return server.listen.apply(server, arguments);    
+    return server.listen.apply(server, arguments);
   }
 
-  app.stack = [];
-  var i = 0;
+  app.use = function (path, middleware) {
 
-  app.use = function(middleware) {
-    if (! middleware.use) {
-      app.stack.push(middleware);  
-    } else {
-      var em = createEmbedding(middleware);
-      app.stack.push(em);
+    if (typeof path != 'string') {
+      middleware = path;
+      path = '/';
     }
-    return app;    
+
+    if (middleware.use) {
+      middleware = createEmbedding(middleware);
+    }
+
+    layer = new Layer(path, middleware);
+    app.stack.push(layer);
+
+    //return app;
   }
 
   function createEmbedding(subApp) {
-    var embed = function(req, res, next) {
+    var embed = function (req, res, next) {
       subApp.next2 = next;
       subApp(req, res);
     }
     return embed;
   }
 
-  return app; 
+  return app;
 }
 
