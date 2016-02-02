@@ -2,6 +2,7 @@ var express = require('../');
 var request = require("supertest");
 var expect = require("chai").expect;
 var http = require("http");
+var Layer = require('../lib/layer.js');
 
 describe("app", function () {
   var app = express();
@@ -209,7 +210,7 @@ describe("Building the middlewares stack", function () {
     var app;
     var layer;
     var fn;
-    var Layer = require('../lib/layer.js');
+
 
     //function m1(req, res) {
     //
@@ -232,11 +233,13 @@ describe("Building the middlewares stack", function () {
     });
 
     it("returns matched path if layer matches the request path exactly", function () {
-      expect(layer.match("/foo")).to.be.eql({path: "/foo"});
+      expect(layer.match("/foo")).to.not.be.undefined;
+      expect(layer.match("/foo")).to.have.property("path", "/foo");
     });
 
     it("returns mathced prefix if the layer matches the prefix of the request path", function () {
-      expect(layer.match("/foo/bar")).to.be.eql({path: "/foo"});
+      expect(layer.match("/foo/bar")).to.not.be.undefined;
+      expect(layer.match("/foo/bar")).to.have.property("path", "/foo");
     });
   });
 
@@ -321,6 +324,61 @@ describe("Building the middlewares stack", function () {
 
     it("returns 500 for /foo", function(done) {
       request(app).get('/foo').expect(500).end(done);
+    });
+  });
+
+  describe("Path parameters extraction", function(){
+    var app;
+    var layer;
+    var middleware;
+    beforeEach(function(){
+      app = new express();
+      middleware = function() {};
+      layer = new Layer("/foo/:a/:b", middleware)
+
+    });
+    it("returns undefined for unmatched path", function() {
+      expect(layer.match("/foo")).to.be.undefined;
+      expect(layer.match("/bar")).to.be.undefined;
+    });
+
+    it("returns undefined if there isn't enough parameters", function() {
+      expect(layer.match("/foo/apple")).to.be.undefined;
+    });
+
+    it("returns match data for exact match", function() {
+      var match = layer.match("/foo/apple/xiaomi");
+      expect(match).to.not.be.undefined;
+      expect(match).to.have.property("path", "/foo/apple/xiaomi");
+      expect(match.params).to.deep.equal({a:"apple", b:"xiaomi"});
+    });
+
+    it("returns match data for prefix match", function() {
+      var match = layer.match("/foo/apple/samsung/xiaomi/htc");
+
+      expect(match).to.not.be.undefined;
+      expect(match).to.have.property("path", "/foo/apple/samsung");
+      expect(match.params).to.deep.equal({a:"apple", b:"samsung"});
+    });
+
+    it("should decode uri encoding", function(){
+      var match = layer.match("/foo/apple/xiao%20mi");
+      expect(match.params).to.deep.equal({a: "apple", b: "xiao mi"});
+      match = layer.match("/foo/app%20le/xiao%20mi");
+      expect(match.params).to.deep.equal({a:"app le", b:"xiao mi"});
+
+      layer = new Layer('/');
+      expect(layer.match("/ab%20cd")).to.not.be.undefined;
+    });
+
+    it("should strip trialing slash", function(){
+      layer = new Layer('/');
+      expect(layer.match("/foo")).to.not.be.undefined;
+      expect(layer.match('/')).to.not.be.undefined;
+
+      layer = new Layer('/foo/');
+      expect(layer.match('/foo/')).to.not.be.undefined;
+      expect(layer.match('/foo')).to.not.be.undefined;
     });
   });
 });
