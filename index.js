@@ -23,41 +23,34 @@ function myexpress() {
 
     function next(err) {
 
+      var appstack = app.stack;
       if (err) {
-        while (app.stack[i]) {
-          if (app.stack[i].handle.length == 4)
-            if (app.stack[i].match(req.url))
-              return app.stack[i++].handle(err, req, res, next);
+        while (appstack[i]) {
+          if (appstack[i].handle.length == 4)
+            if (appstack[i].match(req.url))
+              return appstack[i++].handle(err, req, res, next);
           i++;
         }
-        if (i == app.stack.length) {
+        if (i == appstack.length) {
           if (app.next2) {
             app.next2(err);
           }
           resEnd(500);
           return;
         }
-
-        //if (app.stack[i]) {
-        //  if (app.stack[i].match(req.url))
-        //    return app.stack[i++].handle(err, req, res, next);
-        //  else
-        //    i++;
-        //}
-
       }
       // without error
       else {
-        while (app.stack[i] && i <= app.stack.length) {
-          if (app.stack[i].handle.length == 2) {
-            if (app.stack[i].match(req.url))
-              return app.stack[i++].handle(req, res);
-          } else if (app.stack[i].handle.length == 3) {
+        while (appstack[i] && i <= appstack.length) {
+          var match = appstack[i].match(req.url);
+          if (match && appstack[i].handle.length == 2) {
+              req.params = match.params;
+              return appstack[i++].handle(req, res);
+
+          } else if ( match && appstack[i].handle.length == 3) {
             try {
-              if (app.stack[i].match(req.url))
-                return app.stack[i++].handle(req, res, next);
-              else
-                i++;
+                req.params = match.params;
+                return appstack[i++].handle(req, res, next);
             }
             catch (err) {
               next(err);
@@ -68,7 +61,7 @@ function myexpress() {
 
 
         }
-        if (app.stack[i]) {
+        if (appstack[i]) {
 
         } else {
           if (app.next2) {
