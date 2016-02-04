@@ -5,7 +5,7 @@ var http = require("http");
 var Layer = require('../lib/layer.js');
 
 describe("app", function () {
-  var app = express();
+  var app = new express();
   describe("create http server", function () {
 
     it("responds to /foo with 404", function (done) {
@@ -44,7 +44,7 @@ describe("Building the middlewares stack", function () {
   var app;
 
   beforeEach(function () {
-    app = express();
+    app = new express();
   });
 
 
@@ -113,7 +113,7 @@ describe("Building the middlewares stack", function () {
     var app;
 
     beforeEach(function () {
-      app = express();
+      app = new express();
     });
 
     it("should return 500 for unhandled error", function (done) {
@@ -170,20 +170,21 @@ describe("Building the middlewares stack", function () {
 
   describe("Implement App Embedding As Middleware", function () {
     var app;
-    var subapp;
+    var subApp;
 
     beforeEach(function () {
-      app = express();
-      subApp = express();
+      app = new express();
+      subApp = new  express();
     });
 
     it("should pass unhandled request to parent", function (done) {
-      function m2(req, res) {
+      function m2(req, res, next) {
         res.end("m2");
       }
 
       app.use(subApp);
       app.use(m2);
+
       request(app).get('/').expect("m2").end(done);
     });
 
@@ -401,6 +402,64 @@ describe("Building the middlewares stack", function () {
     it("should make {} the default for req.params", function(done) {
       request(app).get('/foo').expect("undefined").end(done);
     });
+  });
+
+  describe("app should have the handle method", function(){
+    var app;
+    var subApp;
+    beforeEach(function() {
+      app = new express();
+      //subApp = new express();
+
+    });
+    it("should have the handle method", function() {
+      expect(app.handle).to.be.a("function");
+    });
+  });
+
+  describe("Prefix path trimming", function() {
+    var app;
+    var subApp;
+    beforeEach(function() {
+      app = new express();
+      subApp = new express();
+
+      function subAppFunc (req, res){
+        res.end("embedded app: " + req.url);
+      }
+
+      subApp.use("/bar", subAppFunc);
+      app.use("/foo", subApp);
+
+      function AppFunc(req, res) {
+        res.end("handler: " + req.url)
+      }
+
+      app.use("/foo", AppFunc);
+    });
+
+    it("trims request path prefix when calling embedded app", function(done) {
+
+      request(app).get("/foo/bar").expect("embedded app: /bar").end(done);
+    });
+
+    it("restore trimmed request path to original when going to the next middleware ensures leading slash", function(done) {
+      request(app).get("/foo").expect("handler: /foo").end(done);
+    });
+
+    it("ensures that first char is / for trimmed path", function(done) {
+      subApp = new express();
+      app = new express();
+      subApp.use("/bar", function() {
+        res.end("/bar");
+      });
+
+      app.use("/bar", subApp);
+
+      request(app).get("/bar").expect("/bar");
+      request(app).get("/bar/").expect("/bar").end(done);
+    });
+
   });
 });
 
