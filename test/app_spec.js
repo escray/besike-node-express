@@ -448,18 +448,29 @@ describe("Building the middlewares stack", function () {
     });
 
     it("ensures that first char is / for trimmed path", function(done) {
-      subApp = new express();
+
+      var app, subapp, barapp;
       app = new express();
-      subApp.use("/bar", function() {
-        res.end("/bar");
+      subapp = new express();
+      barapp = new express();
+
+      subapp.use("/bar",function(req,res) {
+        res.end("embedded app: "+req.url);
       });
 
-      app.use("/bar", subApp);
+      app.use("/foo",subapp);
+      app.use("/foo",function(req,res) {
+        res.end("handler: "+req.url);
+      });
+
+      barapp.use("/",function(req,res) {
+        res.end("/bar");
+      });
+      app.use("/bar",barapp);
 
       request(app).get("/bar").expect("/bar");
       request(app).get("/bar/").expect("/bar").end(done);
     });
-
   });
 });
 
