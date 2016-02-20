@@ -23,6 +23,7 @@
     "chai": "^3.5.0",
     "express": "^4.13.4",
     "http": "0.0.0",
+    "methods": "^1.1.2",
     "mocha": "^2.4.5",
     "path-to-regexp": "^1.2.1",
     "supertest": "^1.1.0",
