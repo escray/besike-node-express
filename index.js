@@ -1,5 +1,7 @@
 var http = require('http');
 var Layer = require('./lib/layer.js');
+var makeRoute = require('./lib/route.js');
+var methods = require('methods');
 
 module.exports = function () {
   var app = function (req, res, parentNext) {
@@ -91,6 +93,30 @@ module.exports = function () {
     app.stack.push(layer);
     return app;
   }
+
+  methods.forEach(function(method) {
+    //if (method == 'connect') {
+    //  console.log("here");
+    //} else {
+    app[method] = function(path, handler) {
+
+      if (typeof path == 'function') {
+        handler = path;
+        path = '/';
+      }
+
+      app.stack.push(new Layer(path, makeRoute(method, handler), {end: true}));
+    //}
+    }
+  });
+
+  //app.get = function (path, handler) {
+  //  app.stack.push(new Layer(path, makeRoute('get', handler), {end: true}));
+  //}
+  //
+  //app.post = function(path, handler) {
+  //  app.stack.push(new Layer(path, makeRoute))
+  //}
 
   return app;
 }
