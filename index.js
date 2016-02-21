@@ -44,7 +44,7 @@ module.exports = function () {
         var layer = app.stack[i];
         var middleware = layer.handle;
         ++i;
-        try {
+        //try {
           var result = layer.match(req.url);
           if (!result) {
             next(err);
@@ -72,9 +72,9 @@ module.exports = function () {
           } else {
             next(err);
           }
-        } catch (e) {
-          errHandler(500);
-        }
+        //} catch (e) {
+        //  errHandler(500);
+        //}
       }
     }
 
