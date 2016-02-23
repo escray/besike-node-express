@@ -89,20 +89,23 @@ module.exports = function () {
       path = '/';
     }
 
-    layer = new Layer(path, middleware);
-    app.stack.push(layer);
+    app.stack.push(new Layer(path, middleware));
     return app;
   }
 
+  methods.push("all");
   methods.forEach(function(method) {
     app[method] = function(path, handler) {
-      if (typeof path == 'function') {
-        handler = path;
-        path = '/';
-      }
-      app.stack.push(new Layer(path, makeRoute(method, handler), {end: true}));
+      app.route(path)[method](handler);
+      return app;
     }
   });
+
+  app.route = function(path) {
+    var route = makeRoute();
+    app.stack.push(new Layer(path, route, {end:true}));
+    return route;
+  }
 
   return app;
 }

@@ -47,7 +47,7 @@ describe("All http verbs", function () {
       if (method == "delete") {
         method = "del";
       }
-      if (method == "connect") {
+      if (method == "connect" || method == "all") {
         if(done)
           done();
 
