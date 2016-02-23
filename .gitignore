@@ -1,6 +1,9 @@
 # tests
 verify
 
+# dev
+.idea
+
 # Logs
 logs
 *.log
