@@ -134,13 +134,89 @@ describe("Implement Dependencies Loader", function () {
   });
 
   describe("load bulitin dependencies: ", function () {
-
+    it("can load req, res, and next", function(done) {
+      var req = 1, res = 2, next = 3;
+      function handler(next, req, res) { };
+      injector = inject(handler, app);
+      loader = injector.dependencies_loader(req, res, next);
+      loader(function(err, values) {
+        expect(values).to.deep.equal([3, 1, 2]);
+      });
+      done();
+    })
   });
-
 
   describe("pass req and res to factories: ", function () {
+    it("can calls factories with req, res", function(done) {
+      var req = 1, res = 2;
+      app.factory("foo", function(req, res, callback) {
+        callback(null, [req, res, "foo"]);
+      });
+      function handler(foo) {};
+
+      injector = inject(handler, app);
+      loader = injector.dependencies_loader(req, res);
+      loader(function(err, values) {
+        var args = values[0];
+        expect(args[0]).to.equal(req);
+        expect(args[1]).to.equal(res);
+      });
+      done();
+    })
+  });
+});
+
+describe("Implement Injector Invokation: ", function() {
+  var app, injector, handler, loader;
+  beforeEach(function(){
+    app = express();
+    app.factory("foo", function(req, res, next) {
+      next(null, "foo value");
+    });
 
   });
 
+  it("can call injector as a request handler", function(done) {
+    var req = 1, res = 2, next = 3;
+    function handler(res, foo) {
+      expect(res).to.equal(2);
+      expect(foo).to.equal("foo value");
+    };
+    injector = inject(handler, app);
+    injector(req, res, next);
 
+    done();
+  });
+
+  it("call next with error if injection failse", function(done) {
+    var req = 1, res = 2;
+    function next(err) {
+      expect(err).to.be.instanceof(Error);
+      expect(err.message).to.equal("Factory not defined: unknow_dep");
+    }
+
+    function handler(unknown_dep) {};
+    injector = inject(handler, app);
+    injector(req, res, next);
+
+    done();
+  });
 });
+
+describe("Implement app.inject", function() {
+  var app;
+  beforeEach(function() {
+    app = express();
+    app.factory("foo", function(res, req, callback) {
+      callback(null, "hello from foo DI!");
+    });
+
+  })
+  it("can create an injector", function(done) {
+    app.use(app.inject(function (res, foo) {
+      res.end(foo);
+    }));
+    request(app).get("/").expect("hello from foo DI!");
+    done();
+  });
+})
