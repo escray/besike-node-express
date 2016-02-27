@@ -1,6 +1,7 @@
 var http = require('http');
 var Layer = require('./lib/layer.js');
 var makeRoute = require('./lib/route.js');
+var DI = require('./lib/injector.js');
 var methods = require('methods');
 
 module.exports = function () {
@@ -9,6 +10,8 @@ module.exports = function () {
   }
 
   app.stack = [];
+
+  app._factories = {};
 
   app.listen = function () {
     var server = http.createServer(app);
@@ -105,6 +108,14 @@ module.exports = function () {
     var route = makeRoute();
     app.stack.push(new Layer(path, route, {end:true}));
     return route;
+  }
+
+  app.factory = function(name, func) {
+    if( typeof func != 'function') {
+      throw new Error('app.factory() require a function but got a ' + typeof func);
+    }
+
+    app._factories[name] = func;
   }
 
   return app;
