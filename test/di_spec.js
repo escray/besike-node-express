@@ -31,7 +31,6 @@ describe('app.factory', function () {
 
   it('should add a factory in app._factories', function () {
     expect(app._factories).to.be.an('object');
-    //expect(app._factories).to.be.an('object');
     console.log(typeof app._factories);
     expect(app._factories).to.have.property("foo", fn);
     expect(app._factories).to.have.property("status", getStatus)
@@ -220,3 +219,33 @@ describe("Implement app.inject", function() {
     done();
   });
 })
+
+//describe("test from @luin", function() {
+//  var app;
+//  beforeEach(function() {
+//    app = express();
+//  })
+//  it('should cache the same dependency', function(done){
+//    var times = 0;
+//    app.factory('test7', function(req, res, next) {
+//      times += 2;
+//      next(null, times);
+//    });
+//    var msg = 'hello';
+//    var func1 = function(req, res, next) {
+//      next();
+//
+//    };
+//
+//    var func2 = function(req, res, test7) {
+//      test7.should.eq(1);
+//      //expect(req.__di_caches.test7).to.be.equal([null, 2]);
+//      res.end(msg);
+//    }
+//
+//    //app.get('/test7', func1);
+//    app.get('/test7', func2);
+//    request(app).get('/test7').expect(msg).end(done);
+//    //done();
+//  });
+//});

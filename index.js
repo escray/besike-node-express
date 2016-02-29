@@ -6,8 +6,23 @@ var methods = require('methods');
 
 module.exports = function () {
   var app = function (req, res, parentNext) {
-    app.handle(req, res, parentNext);
-  }
+
+    req.res = res;
+    res.req = req;
+
+    //if(parentNext) {
+    //  // never hit ?
+    //  var appParent = req.app;
+    //  req.app = app;
+    //  app.handle(req, res, function(err) {
+    //    req.app = appParent;
+    //    parentNext(err);
+    //  });
+    //} else {
+      req.app = app;
+      app.handle(req, res, parentNext);
+    //}
+  };
 
   app.stack = [];
 
@@ -39,6 +54,7 @@ module.exports = function () {
 
         if (parentNext) {
           req.url = req.url_bak;
+          req.app = req.app_bak;
           parentNext(err);
         } else {
           var code = err ? 500 : 404;
@@ -65,6 +81,8 @@ module.exports = function () {
               if (middleware.handle) {
                 req.url_bak = req.url;
                 req.url = req.url.slice(result.path.length);
+                req.app_bak = app;
+                req.app = middleware;
                 middleware.handle(req, res, next);
               } else {
                 middleware(req, res, next);
@@ -120,6 +138,16 @@ module.exports = function () {
 
   app.inject = function(handler){
     return createInjector(handler, app);
+  }
+
+  app.monkey_patch = function(req, res) {
+    var req_proto = require('./lib/request.js');
+    req_proto.__proto__ = req.__proto__;
+    req.__proto__ = req_proto;
+
+    var res_proto = require('./lib/response.js');
+    res_proto.__proto__ = res.__proto__;
+    res.__proto__ = res_proto;
   }
 
   return app;
