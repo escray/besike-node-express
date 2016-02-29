@@ -9,19 +9,35 @@ module.exports = function () {
 
     req.res = res;
     res.req = req;
+    req.app = app;
 
-    //if(parentNext) {
-    //  // never hit ?
-    //  var appParent = req.app;
-    //  req.app = app;
-    //  app.handle(req, res, function(err) {
-    //    req.app = appParent;
-    //    parentNext(err);
-    //  });
-    //} else {
-      req.app = app;
-      app.handle(req, res, parentNext);
-    //}
+    res.redirect = function(path) {
+      var address, body, status;
+
+      address = path;
+      status = 302;
+
+      if (arguments.length === 2) {
+        if (typeof arguments[0] === 'number') {
+          status = arguments[0];
+          address = arguments[1];
+        } else {
+          // deprecate ?
+          address = arguments[0];
+          status = arguments[1];
+        }
+      }
+
+      res.setHeader('Location', address);
+      res.setHeader('Content-length', 0);
+      res.statusCode = status;
+      res.end();
+
+
+    }
+
+    app.handle(req, res, parentNext);
+
   };
 
   app.stack = [];

@@ -94,12 +94,42 @@ describe("req.res and res.req", function() {
       _res = res;
       _req = req;
       res.end("ok")
-    })
+    });
 
     request(app).get('/').expect(200).end(function() {
       expect(_req.res).to.equal(_res, "req.res is not response");
       expect(_res.req).to.equal(_req, "res.req is not request");
       done();
+    });
+  });
+});
+
+describe("HTTP redirect: ", function() {
+  beforeEach(function() {
+    app = express();
+    app.use("/foo", function(req, res) {
+      res.redirect("/baz");
+    });
+    app.use('/bar', function(req, res) {
+      res.redirect(301, '/baz');
     })
-  })
-})
+  });
+
+  it("redirects with 302 by default", function(done) {
+    request(app).get('/foo')
+      .expect(302)
+      .expect("Location", "/baz").end(done);
+  });
+
+  it("redirects with the given status code", function(done) {
+    request(app).get('/bar')
+      .expect(301)
+      .expect("Location", "/baz").end(done);
+  });
+
+  it("returns empty body", function(done) {
+    request(app).get('/foo')
+      .expect(302, "")
+      .expect("Content-Length", 0).end(done);
+  });
+});
