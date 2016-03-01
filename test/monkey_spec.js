@@ -62,7 +62,7 @@ describe("Setting req.app", function() {
   });
 
   it("resets req.app to parent app when exiting a subapp", function(done) {
-    var _app, _subapp;
+    var _app, _subapp, _app2;
     var subapp = express();
     subapp.use(function(req, res, next) {
       _subapp = req.app;
@@ -70,14 +70,21 @@ describe("Setting req.app", function() {
     });
 
     app.use(subapp);
-    app.use(function(req, res) {
+    app.use(function(req, res, next) {
       _app = req.app;
-      res.end("ok");
+      next();
     })
+
+    app.use(subapp);
+    app.use(function(req, res) {
+      _app2 = req.app;
+      res.end("ok");
+    });
 
     request(app).get('/').expect(200).end(function() {
       expect(_app).to.equal(app, "req.app is not restored to parent");
       expect(_subapp).to.equal(subapp);
+      expect(_app2).to.equal(app);
       done();
     });
   });

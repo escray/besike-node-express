@@ -3,6 +3,8 @@ var Layer = require('./lib/layer.js');
 var makeRoute = require('./lib/route.js');
 var createInjector = require('./lib/injector.js');
 var methods = require('methods');
+var mime = require('mime');
+var accepts = require('accepts');
 
 module.exports = function () {
   var app = function (req, res, parentNext) {
@@ -10,6 +12,8 @@ module.exports = function () {
     req.res = res;
     res.req = req;
     req.app = app;
+
+    var accept = accepts(req);
 
     res.redirect = function(path) {
       var address, body, status;
@@ -32,8 +36,29 @@ module.exports = function () {
       res.setHeader('Content-length', 0);
       res.statusCode = status;
       res.end();
+    }
 
+    res.type = function(name) {
+      res.setHeader('Content-Type', mime.lookup(name));
+    };
 
+    res.default_type = function(name) {
+      if (!res.getHeader('Content-Type')) {
+        res.setHeader('Content-Type', mime.lookup(name));
+      }
+    }
+
+    res.format = function(arr){
+      var keys = Object.keys(arr);
+      var type = accept.types(keys);
+
+      if(arr[type]) {
+        res.setHeader('Content-Type', mime.lookup(type));
+        arr[type]();
+      } else {
+        res.statusCode = 406;
+        res.end("Not Acceptable");
+      }
     }
 
     app.handle(req, res, parentNext);
