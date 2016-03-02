@@ -33,7 +33,7 @@ describe("Setting Content-Type", function() {
       .expect(chunk)
       .expect('Content-Type', 'text/plain')
       .end(done);
-  })
+  });
 });
 
 describe("res.format", function() {
