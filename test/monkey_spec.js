@@ -13,7 +13,7 @@ describe("Monkey patch req and res", function() {
   it("add isExpress to req and res", function(done) {
     var _req, _res;
     app.use(function(req, res) {
-      app.monkey_patch(req, res);
+      //app.monkey_patch(req, res);
       _req = req;
       _res = res;
       res.end(req.isExpress + ", " + res.isExpress);

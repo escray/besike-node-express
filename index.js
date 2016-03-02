@@ -5,68 +5,18 @@ var createInjector = require('./lib/injector.js');
 var methods = require('methods');
 var mime = require('mime');
 var accepts = require('accepts');
+var req_proto = require('./lib/request.js');
+var res_proto = require('./lib/response.js');
 
 module.exports = function () {
   var app = function (req, res, parentNext) {
-
-    req.res = res;
-    res.req = req;
     req.app = app;
 
-    var accept = accepts(req);
-
-    res.redirect = function(path) {
-      var address, body, status;
-
-      address = path;
-      status = 302;
-
-      if (arguments.length === 2) {
-        if (typeof arguments[0] === 'number') {
-          status = arguments[0];
-          address = arguments[1];
-        } else {
-          // deprecate ?
-          address = arguments[0];
-          status = arguments[1];
-        }
-      }
-
-      res.setHeader('Location', address);
-      res.setHeader('Content-length', 0);
-      res.statusCode = status;
-      res.end();
-    }
-
-    res.type = function(name) {
-      res.setHeader('Content-Type', mime.lookup(name));
-    };
-
-    res.default_type = function(name) {
-      if (!res.getHeader('Content-Type')) {
-        res.setHeader('Content-Type', mime.lookup(name));
-      }
-    }
-
-    res.format = function(arr){
-      var keys = Object.keys(arr);
-      var type = accept.types(keys);
-
-      if(arr[type]) {
-        res.setHeader('Content-Type', mime.lookup(type));
-        arr[type]();
-      } else {
-        res.statusCode = 406;
-        res.end("Not Acceptable");
-      }
-    }
-
+    app.monkey_patch(req, res);
     app.handle(req, res, parentNext);
-
   };
 
   app.stack = [];
-
   app._factories = {};
 
   app.listen = function () {
@@ -182,15 +132,18 @@ module.exports = function () {
   }
 
   app.monkey_patch = function(req, res) {
-    var req_proto = require('./lib/request.js');
+
     req_proto.__proto__ = req.__proto__;
     req.__proto__ = req_proto;
+    req.res = res;
 
-    var res_proto = require('./lib/response.js');
     res_proto.__proto__ = res.__proto__;
     res.__proto__ = res_proto;
+    res.req = req;
   }
 
   return app;
 }
+
+
 
